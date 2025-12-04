@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:18'
-            args '-u root:root -v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
 
     stages {
         stage('Checkout') {
@@ -14,33 +9,30 @@ pipeline {
             }
         }
 
-        stage('Install dependencies') {
+        stage('Install & Build in Docker Node') {
             steps {
-                sh 'npm install'
+                script {
+                    docker.image('node:18').inside('-u root:root') {
+                        sh 'npm install'
+                        sh 'npm run build'
+                    }
+                }
             }
         }
 
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                sh 'npm run build'
-            }
-        }
-
-        stage('Package Docker image') {
-            steps {
-                sh '''
-                docker build -t am-landing:latest .
-                '''
+                sh 'docker build -t am-landing:latest .'
             }
         }
     }
 
     post {
-        failure {
-            echo '❌ Build failed.'
-        }
         success {
-            echo '🎉 Build success!'
+            echo "✔ Build completed successfully."
+        }
+        failure {
+            echo "❌ Build failed."
         }
     }
 }
