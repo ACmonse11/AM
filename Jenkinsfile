@@ -12,23 +12,21 @@ pipeline {
 
         stage('Install & Build in Docker Node') {
             steps {
-                script {
-                    def nodeImage = docker.image('node:18')
-                    nodeImage.pull()   // Asegura que existe antes de usarlo
-
-                    nodeImage.inside('-u root:root') {
-                        sh 'npm install'
-                        sh 'npm run build'
-                    }
-                }
+                sh '''
+                    docker run --rm \
+                        -v $PWD:/app \
+                        -w /app \
+                        node:18 bash -c "
+                            npm install &&
+                            npm run build
+                        "
+                '''
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh 'docker build -t am-landing:latest .'
-                }
+                sh 'docker build -t am-landing:latest .'
             }
         }
     }
