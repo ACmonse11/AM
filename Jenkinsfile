@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     stages {
+
         stage('Checkout') {
             steps {
                 git branch: 'master',
@@ -12,7 +13,10 @@ pipeline {
         stage('Install & Build in Docker Node') {
             steps {
                 script {
-                    docker.image('node:18').inside('-u root:root') {
+                    def nodeImage = docker.image('node:18')
+                    nodeImage.pull()   // Asegura que existe antes de usarlo
+
+                    nodeImage.inside('-u root:root') {
                         sh 'npm install'
                         sh 'npm run build'
                     }
@@ -22,7 +26,9 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t am-landing:latest .'
+                script {
+                    sh 'docker build -t am-landing:latest .'
+                }
             }
         }
     }
