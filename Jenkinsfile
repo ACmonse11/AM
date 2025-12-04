@@ -2,14 +2,15 @@ pipeline {
     agent {
         docker {
             image 'node:18'
-            args '-v $HOME/.npm:/root/.npm'
+            args '-u root:root -v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                git branch: 'master',
+                    url: 'https://github.com/ACmonse11/AM.git'
             }
         }
 
@@ -23,6 +24,23 @@ pipeline {
             steps {
                 sh 'npm run build'
             }
+        }
+
+        stage('Package Docker image') {
+            steps {
+                sh '''
+                docker build -t am-landing:latest .
+                '''
+            }
+        }
+    }
+
+    post {
+        failure {
+            echo '❌ Build failed.'
+        }
+        success {
+            echo '🎉 Build success!'
         }
     }
 }
