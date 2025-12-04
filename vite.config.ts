@@ -3,6 +3,12 @@ import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  css: {
+    transformer: 'postcss',   // ✔ Tailwind v4 requiere PostCSS, no LightningCSS
+  },
+  build: {
+    cssMinify: 'esbuild',     // ✔ evita LightningCSS que rompe Tailwind v4
+  },
   plugins: [
     vue(),
     VitePWA({
